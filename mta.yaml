@@ -1,0 +1,82 @@
+---
+_schema-version: '3.1'
+ID: consumingApi
+version: 1.0.0
+description: "A simple CAP project."
+parameters:
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npx -p @sap/cds-dk cds build --production
+
+modules:
+  - name: consumingApi-srv
+    type: nodejs
+    path: gen/srv
+    parameters:
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm-ci
+    provides:
+      - name: srv-api # required by consumers of CAP services (e.g. approuter)
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: consumingApi-auth
+      - name: consumingApi-dest
+      - name: consumingApi-connectivity
+      - name: consumingApi-logs
+
+  - name: consumingApi
+    type: approuter.nodejs
+    path: app/ # from cds.env.folders. Consider also cds.env.build.target -> gen/app
+    parameters:
+      keep-existing-routes: true
+      disk-quota: 256M
+      memory: 256M
+    requires:
+      - name: srv-api
+        group: destinations
+        properties:
+          name: srv-api # must be used in xs-app.json as well
+          url: ~{srv-url}
+          forwardAuthToken: true
+      - name: consumingApi-auth
+
+resources:
+  # ------------------------------------------------------------
+  - name: consumingApi-auth
+    # ------------------------------------------------------------
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+      config:
+        xsappname: consumingApi-${org}-${space}
+        tenant-mode: dedicated
+  # ------------------------------------------------------------
+  - name: consumingApi-dest
+    # ------------------------------------------------------------
+    parameters:
+      service-plan: lite
+      service: destination
+      service-name: consumingApi-dest
+    type: org.cloudfoundry.managed-service
+
+  # ------------------------------------------------------------
+  - name: consumingApi-connectivity
+    # ------------------------------------------------------------
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: connectivity
+      service-plan: lite
+  # ------------------------------------------------------------
+  - name: consumingApi-logs
+    # ------------------------------------------------------------
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: application-logs
+      service-plan: lite

@@ -1,0 +1,24 @@
+{
+  "xsappname": "consumingapixsuua",
+  "tenant-mode": "dedicated",
+  "description": "Security profile of called application",
+  "scopes": [
+    {
+      "name": "$XSAPPNAME.apiViewer",
+      "description": "apiViewer"
+    }
+  ],
+  "attributes": [],
+  "role-templates": [
+    {
+      "name": "apiViewer",
+      "description": "generated",
+      "scope-references": ["$XSAPPNAME.apiViewer"],
+      "attribute-references": []
+    }
+  ],
+  "oauth2-configuration": {
+    "redirect-uris": ["https://*.cfapps.*.hana.ondemand.com/**"]
+  },
+  "authorities-inheritance": false
+}
