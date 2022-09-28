@@ -6,7 +6,10 @@ entity A_BusinessPartner as projection on ZAPI_BUSINESS_PARTNER.A_BusinessPartne
     key BusinessPartner,
         Customer,
         Supplier,
-        AcademicTitle
+        AcademicTitle,
+        BusinessPartnerCategory,
+        OrganizationBPName1,
+        BusinessPartnerFullName
 };
 
 entity A_AddressEmailAddress as projection on ZAPI_BUSINESS_PARTNER.A_AddressEmailAddress { // CRUD
